@@ -1,0 +1,30 @@
+name: Provides a image tag
+description: Appends /pr when executed in a pull_request context
+
+inputs:
+  path_suffix:
+    description: optional suffix
+    required: true
+    default: ''
+
+outputs:
+  tag:
+    description: provides a tag to publish against
+    value: ${{ steps.docker.outputs.tag }}
+
+runs:
+  using: "composite"
+  steps:
+    - run: |-
+        if [ '${{ github.event_name }}' = 'pull_request' ]; then
+          echo "suffix=/pr" >> $GITHUB_OUTPUT
+        fi
+      shell: sh
+      id: pull_request
+
+    - run: |
+        echo 'tag<<EOF' >> $GITHUB_OUTPUT
+        echo "ghcr.io/${{ github.repository }}${{ inputs.path_suffix }}${{ steps.pull_request.outputs.suffix }}:${{ github.run_id }}" | tr '[:upper:]' '[:lower:]' >> $GITHUB_OUTPUT
+        echo 'EOF' >> $GITHUB_OUTPUT
+      shell: sh
+      id: docker
