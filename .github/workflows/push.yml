@@ -1,0 +1,35 @@
+name: Push
+
+on:
+  push:
+
+jobs:
+  tagContainsNoPrSuffix:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./
+        id: docker
+      - run: |-
+          if [ "${{ steps.docker.outputs.tag }}" = $( echo "ghcr.io/${{ github.repository }}:${{ github.run_id }}" | tr '[:upper:]' '[:lower:]') ]; then
+              echo "Looks good 🚀"
+          else
+              echo "action output did not match expectation"
+              exit 1
+          fi
+
+  tagContainsCustomSuffix:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./
+        id: docker
+        with:
+          path_suffix: /TACO_TUESDAY
+      - run: |-
+          if [ "${{ steps.docker.outputs.tag }}" = $( echo "ghcr.io/${{ github.repository }}/TACO_TUESDAY:${{ github.run_id }}" | tr '[:upper:]' '[:lower:]') ]; then
+              echo "Looks good 🚀"
+          else
+              echo "action output did not match expectation"
+              exit 1
+          fi
